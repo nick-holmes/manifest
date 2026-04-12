@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manifest</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f4f0;color:#1a1a1a;min-height:100vh}
+.page{max-width:1140px;margin:0 auto;padding:22px 16px}
+.header-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+h1{font-size:21px;font-weight:600;line-height:1.2}
+.subtitle{font-size:12px;color:#777;margin-top:2px}
+.btn-load{font-size:12px;padding:7px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn-load:hover{background:#333}
+/* Deck total summary bar */
+.deck-summary{background:#fff;border:1px solid #e0ddd6;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:none}
+.ds-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ds-total{font-size:18px;font-weight:600;color:#1a1a1a}
+.ds-note{font-size:12px;color:#e87030}
+.ds-ok{font-size:12px;color:#888}
+.ds-loading{font-size:13px;color:#888;font-style:italic}
+.ds-spacer{flex:1}
+.buy-all-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:0.5px solid #f0ece4}
+.buy-all-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#aaa;align-self:center;white-space:nowrap}
+.buy-all-btn{font-size:11px;padding:5px 12px;border-radius:7px;border:1px solid #e0ddd6;text-decoration:none;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .1s}
+.buy-all-btn:hover{opacity:.85}
+.btn-tcg{background:#e8f0ff;border-color:#b8ccf8;color:#1a3a9a}
+.btn-mtgmate{background:#fff3e8;border-color:#f8d8b8;color:#8a4010}
+.btn-cardkingdom{background:#f0f0f0;border-color:#d8d8d8;color:#333}
+.btn-copy{background:#f5f4f0;border-color:#d8d5cc;color:#555}
+/* Topbar */
+.topbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+.stat{background:#fff;border:1px solid #e0ddd6;border-radius:8px;padding:4px 11px;font-size:11px;color:#666}
+.stat b{font-weight:600;color:#1a1a1a}
+.stat-warn{background:#fff5f5;border-color:#ffc0c0}
+.stat-warn b{color:#c0321a}
+.load-bar{font-size:11px;color:#888;display:flex;align-items:center;gap:6px}
+.progress-bar{width:100px;height:4px;background:#e8e5de;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:#8b77dd;border-radius:2px;transition:width .25s}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal-box{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:560px;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-box h2{font-size:16px;font-weight:600;margin-bottom:6px}
+.modal-box p{font-size:12px;color:#666;margin-bottom:12px;line-height:1.5}
+.modal-box textarea{width:100%;height:280px;border:1px solid #d0ccc4;border-radius:8px;padding:10px;font-size:12px;font-family:monospace;resize:vertical;outline:none;line-height:1.5}
+.modal-box textarea:focus{border-color:#8b77dd}
+.modal-btns{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.btn-cancel{font-size:12px;padding:7px 14px;background:transparent;border:1px solid #d0ccc4;border-radius:8px;cursor:pointer}
+.btn-cancel:hover{background:#f5f4f0}
+.btn-primary{font-size:12px;padding:7px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer}
+.btn-primary:hover{background:#333}
+.modal-hint{font-size:11px;color:#999;margin-top:8px;line-height:1.4}
+/* Layout */
+.layout{display:flex;gap:18px;align-items:flex-start}
+.lpane{width:264px;flex-shrink:0;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
+.pcard{background:#fff;border:1px solid #e0ddd6;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.img-wrap{width:264px;height:368px;position:relative;background:#2a2a3a;overflow:hidden;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:center}
+.img-wrap img{width:100%;height:100%;object-fit:cover;display:none;border-radius:12px 12px 0 0}
+.img-fallback{position:absolute;inset:0;display:none;flex-direction:column;justify-content:flex-end;padding:14px;border-radius:12px 12px 0 0}
+.fb-mana{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:7px}
+.pip{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;border:1.5px solid rgba(255,255,255,.35);flex-shrink:0}
+.fb-name{font-size:15px;font-weight:600;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.75);line-height:1.2}
+.fb-type{font-size:10px;color:rgba(255,255,255,.7);margin-top:3px}
+.ph-msg{color:rgba(255,255,255,.4);font-size:12px;text-align:center;line-height:1.7}
+.img-loading{color:rgba(255,255,255,.5);font-size:12px;display:none}
+.pinfo{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.banned-banner{background:#fff0f0;border:1px solid #f5b8b8;border-radius:8px;padding:7px 10px;display:none;align-items:center;gap:7px}
+.banned-icon{font-size:14px;flex-shrink:0}
+.banned-text{font-size:11px;color:#b03020;font-weight:500}
+.oracle-text{font-size:11px;color:#555;line-height:1.55;font-style:italic;padding-bottom:10px;border-bottom:1px solid #f0ece4;min-height:44px}
+/* Sets */
+.sets-section{padding-bottom:10px;border-bottom:1px solid #f0ece4}
+.section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#aaa}
+.sets-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sets-count{font-size:10px;color:#bbb}
+.sets-list{display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto}
+.set-row{display:flex;align-items:flex-start;gap:7px;padding:2px 0}
+.set-code{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;background:#f0ece4;color:#555;text-transform:uppercase;min-width:36px;text-align:center;flex-shrink:0;letter-spacing:.03em;margin-top:1px}
+.set-name{font-size:11px;color:#333;flex:1;line-height:1.35;word-break:break-word}
+.set-year{font-size:10px;color:#bbb;flex-shrink:0;margin-top:1px}
+.rarity-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.r-common{background:#bbb}.r-uncommon{background:#7ab}.r-rare{background:#c8a830}.r-mythic{background:#e8722a}.r-special{background:#c87db8}
+.sets-msg{font-size:11px;color:#bbb;font-style:italic}
+/* Prices */
+.price-section{padding-bottom:10px;border-bottom:1px solid #f0ece4}
+.price-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+.price-table th{font-size:10px;font-weight:600;color:#aaa;text-align:right;padding-bottom:5px;border-bottom:1px solid #eee}
+.price-table th:first-child{text-align:left}
+.price-table td{padding:5px 0;border-bottom:1px solid #f5f4f0;vertical-align:middle}
+.price-table td:not(:first-child){text-align:right;font-weight:600;color:#1a1a1a;font-size:12px}
+.price-table td.na{color:#ccc;font-weight:400}
+.grade{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600}
+.lp{background:#fff0e6;color:#9a4a1a}.nm{background:#e8efff;color:#1a3a9a}.mt{background:#e8f9e8;color:#1a6a1a}
+.cur-btns{display:flex;gap:6px}
+.cb{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid #d0ccc4;background:transparent;color:#666;cursor:pointer}
+.cb:hover{background:#f5f4f0}
+.cb.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+/* Buy links */
+.buy-section{}
+.buy-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px}
+.buy-btn{display:block;text-align:center;padding:6px 6px;border-radius:7px;font-size:10px;font-weight:500;text-decoration:none;border:1px solid #e0ddd6;color:#444;background:#f8f7f4;transition:background .1s;line-height:1.3}
+.buy-btn:hover{background:#eeeae0;color:#1a1a1a}
+.buy-btn.au{background:#eef3ff;border-color:#c8d8f8;color:#1a3a9a}
+.buy-btn.au:hover{background:#dde8ff}
+.buy-btn.official{background:#f0fff0;border-color:#b8e8b8;color:#1a6a1a}
+.buy-btn.official:hover{background:#e0f8e0}
+.buy-full{grid-column:1/-1}
+.fnote{font-size:10px;color:#999;margin-top:9px;padding:7px 10px;border-left:3px solid #8b77dd;background:#f5f0ff;border-radius:0 6px 6px 0;line-height:1.5}
+/* Right */
+.rpane{flex:1;min-width:0}
+.controls{background:#fff;border:1px solid #e0ddd6;border-radius:10px;padding:10px 12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:11px;padding:4px 12px;border-radius:999px;border:1px solid #d0ccc4;background:transparent;color:#555;cursor:pointer}
+.pill:hover{background:#f5f4f0}
+.pill.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.search-input{width:100%;padding:7px 10px;border:1px solid #d0ccc4;border-radius:8px;font-size:13px;outline:none;background:#fff}
+.search-input:focus{border-color:#8b77dd}
+.section-block{margin-bottom:4px}
+/* Section header with price total */
+.shdr{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#aaa;padding:10px 0 4px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #e8e5de}
+.scnt{background:#f0ece4;border-radius:999px;padding:1px 7px;font-size:10px;color:#888}
+.shdr-spacer{flex:1}
+.shdr-price{font-size:10px;font-weight:600;color:#555;white-space:nowrap}
+.shdr-missing{font-size:9px;color:#e87030;white-space:nowrap;margin-left:2px}
+/* Card rows */
+.row{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent;user-select:none}
+.row:hover{background:#f5f4f0}
+.row.sel{background:#eeebff;border-color:#c8c0f0}
+.row.banned-row{border-left:3px solid #e05030;padding-left:8px}
+.row.banned-row:hover{background:#fff5f5}
+.row.banned-row.sel{background:#fff0ef;border-color:#f5a8a0;border-left-color:#e05030}
+.rname{flex:1;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtag{font-size:9px;padding:2px 6px;border-radius:999px;white-space:nowrap;flex-shrink:0}
+.tk{background:#fff0e6;color:#9a3a10}.tb{background:#e8f9e8;color:#1a6a1a}
+.banned-tag{background:#fde8e4;color:#b03020;font-size:9px;padding:2px 6px;border-radius:999px;white-space:nowrap;flex-shrink:0;font-weight:600}
+.qty-badge{font-size:10px;font-weight:600;color:#888;padding:1px 6px;background:#f0ece4;border-radius:4px;flex-shrink:0}
+.color-pips{display:flex;gap:2px;flex-shrink:0;align-items:center}
+.cpip{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;font-size:8px;font-weight:800;flex-shrink:0;border:1px solid rgba(0,0,0,0.18);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.rp{font-size:11px;color:#aaa;white-space:nowrap;min-width:54px;text-align:right}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{display:inline-block;width:10px;height:10px;border:2px solid #ddd;border-top-color:#8b77dd;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:4px}
+/* View toggle */
+.view-toggle{display:flex;gap:3px;margin-left:auto}
+.vt{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #d0ccc4;background:transparent;color:#666;cursor:pointer;line-height:1}
+.vt:hover{background:#f5f4f0}
+.vt.on{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.controls-row{display:flex;align-items:center;gap:8px}
+/* Grid view */
+.card-grid-section{margin-bottom:4px}
+.grid-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;padding:8px 0 4px}
+.gcell{position:relative;cursor:pointer;border-radius:8px;border:2px solid transparent;transition:border-color .1s;overflow:hidden;background:#2a2a3a;aspect-ratio:63/88}
+.gcell:hover{border-color:#c8c0f0}
+.gcell.sel{border-color:#8b77dd;box-shadow:0 0 0 2px rgba(139,119,221,.25)}
+.gcell img{width:100%;height:100%;object-fit:cover;display:block;border-radius:6px}
+.gcell-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 6px 10px;border-radius:6px}
+.gcell-ph-name{font-size:9px;font-weight:600;color:rgba(255,255,255,.85);text-align:center;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.8);word-break:break-word}
+.gcell-pips{display:flex;gap:2px;justify-content:center;margin-bottom:4px}
+.gcell-qty{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.65);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px}
+.gcell-banned{position:absolute;top:4px;left:4px;background:#e05030;color:#fff;font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)hideModal()">
+    <div class="modal-box">
+      <h2>Load new deck</h2>
+      <p>Paste your decklist. Supports Moxfield, Archidekt, MTGO, and Arena export formats.</p>
+      <textarea id="dl-input" placeholder="1 Atraxa, Praetors' Voice
+1 Blighted Agent
+...
+
+// Section headers and blank lines are ignored
+// Arena format (1 Card Name (SET) 123) also works"></textarea>
+      <div class="modal-hint">The first card is treated as Commander unless a section is labelled "Commander" or a card is marked *CMDR*.</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="hideModal()">Cancel</button>
+        <button class="btn-primary" onclick="loadDeckFromInput()">Load deck</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="header-row">
+    <div>
+      <h1 id="deck-title">Commander Deck Viewer</h1>
+      <p class="subtitle" id="deck-sub">Load a decklist to get started</p>
+    </div>
+    <button class="btn-load" onclick="showModal()">&#8593; Load new deck</button>
+  </div>
+
+  <!-- Deck price summary -->
+  <div class="deck-summary" id="deck-summary">
+    <div class="ds-row">
+      <span class="ds-loading" id="ds-loading">Loading prices…</span>
+      <span class="ds-total" id="ds-total" style="display:none"></span>
+      <span class="ds-ok"   id="ds-ok"    style="display:none"></span>
+      <span class="ds-note" id="ds-note"  style="display:none"></span>
+    </div>
+    <div class="buy-all-row">
+      <span class="buy-all-label">Buy whole deck:</span>
+      <a class="buy-all-btn btn-tcg"        id="buyall-tcg"        href="#" target="_blank" rel="noopener">TCGPlayer Mass Entry</a>
+      <a class="buy-all-btn btn-mtgmate"    id="buyall-mtgmate"    href="#" target="_blank" rel="noopener">🇦🇺 MTGMate</a>
+      <a class="buy-all-btn btn-cardkingdom" id="buyall-ck"        href="#" target="_blank" rel="noopener">Card Kingdom</a>
+      <button class="buy-all-btn btn-copy"  onclick="copyDecklist()">Copy decklist</button>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="stat"><b id="st-cards">0</b> cards</div>
+    <div class="stat"><b id="st-creatures">—</b> creatures</div>
+    <div class="stat"><b id="st-lands">—</b> lands</div>
+    <div class="stat" id="st-banned" style="display:none"><b id="st-banned-n">0</b> banned</div>
+    <div class="load-bar" id="load-bar" style="display:none">
+      <span id="load-label">Loading…</span>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="lpane">
+      <div class="pcard">
+        <div class="img-wrap" id="img-wrap">
+          <div class="ph-msg" id="ph-msg">Click any card<br>to preview</div>
+          <div class="img-loading" id="img-loading"><span class="spinner"></span>Loading…</div>
+          <img id="card-img" alt="card art">
+          <div class="img-fallback" id="img-fb">
+            <div class="fb-mana" id="fb-mana"></div>
+            <div class="fb-name" id="fb-name"></div>
+            <div class="fb-type" id="fb-type"></div>
+          </div>
+        </div>
+        <div class="pinfo">
+          <div class="banned-banner" id="banned-banner">
+            <span class="banned-icon">⛔</span>
+            <div class="banned-text">Banned in Commander</div>
+          </div>
+          <div class="oracle-text" id="oracle-text"></div>
+          <div class="sets-section">
+            <div class="sets-header">
+              <span class="section-label">Printings</span>
+              <span class="sets-count" id="sets-count"></span>
+            </div>
+            <div class="sets-list" id="sets-list">
+              <span class="sets-msg">Click a card to see printings</span>
+            </div>
+          </div>
+          <div class="price-section">
+            <div class="sets-header">
+              <span class="section-label">Price</span>
+            </div>
+            <table class="price-table">
+              <thead>
+                <tr><th>Condition</th><th id="th-u">USD</th><th id="th-a" style="display:none">AUD ~</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><span class="grade lp">LP</span></td><td class="na" id="lp-u">—</td><td class="na" id="lp-a" style="display:none">—</td></tr>
+                <tr><td><span class="grade nm">NM</span></td><td class="na" id="nm-u">—</td><td class="na" id="nm-a" style="display:none">—</td></tr>
+                <tr><td><span class="grade mt">Mint</span></td><td class="na" id="mt-u">—</td><td class="na" id="mt-a" style="display:none">—</td></tr>
+              </tbody>
+            </table>
+            <div class="cur-btns">
+              <button class="cb on" onclick="setCur('usd',this)">USD</button>
+              <button class="cb" onclick="setCur('aud',this)">AUD</button>
+              <button class="cb" onclick="setCur('both',this)">Both</button>
+            </div>
+          </div>
+          <div class="buy-section">
+            <div class="sets-header">
+              <span class="section-label">Buy</span>
+            </div>
+            <div class="buy-grid">
+              <a id="bl-mtgmate"    class="buy-btn au"             href="#" target="_blank" rel="noopener">🇦🇺 MTGMate</a>
+              <a id="bl-tcgsingles" class="buy-btn au"             href="#" target="_blank" rel="noopener">🇦🇺 TCG Singles</a>
+              <a id="bl-tcgplayer"  class="buy-btn"                href="#" target="_blank" rel="noopener">TCGPlayer</a>
+              <a id="bl-cardkingdom" class="buy-btn"               href="#" target="_blank" rel="noopener">Card Kingdom</a>
+              <a id="bl-scryfall"   class="buy-btn buy-full"       href="#" target="_blank" rel="noopener">Scryfall (all vendors)</a>
+              <a id="bl-gatherer"   class="buy-btn official buy-full" href="#" target="_blank" rel="noopener">Official Gatherer (Wizards)</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="fnote">Prices from Scryfall/TCGPlayer. LP = 85% NM · Mint ≈ 110% NM · AUD ≈ USD ×1.56. Verify before buying.</div>
+    </div>
+
+    <div class="rpane">
+      <div class="controls">
+        <div class="controls-row">
+          <div class="pills" id="pills">
+            <button class="pill on" onclick="setF('all',this)">All</button>
+          </div>
+          <div class="view-toggle">
+            <button class="vt on" id="vt-list" onclick="setView('list',this)" title="List view">&#9776; List</button>
+            <button class="vt" id="vt-grid" onclick="setView('grid',this)" title="Grid view">&#9638; Grid</button>
+          </div>
+        </div>
+        <input class="search-input" type="text" placeholder="Search cards…" oninput="setQ(this.value)">
+      </div>
+      <div id="list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const AUD_R=1.56,LP_R=0.85,MINT_R=1.10;
+let curMode='usd',filt='all',sq='',selName=null,viewMode='list';
+const cache={};
+let DECK=[],_loadAbort=false;
+
+const PIPS={W:{bg:'#f4f0d8',tc:'#444'},U:{bg:'#2266bb',tc:'#fff'},B:{bg:'#221133',tc:'#fff'},R:{bg:'#cc2222',tc:'#fff'},G:{bg:'#116622',tc:'#fff'}};
+const COLOR_BG={W:'#5a4e28',U:'#0e2d5a',B:'#1a0a28',R:'#5a1010',G:'#0e3a18',M:'#5a4010',C:'#3a3a48',L:'#3a2a14'};
+const RARITY={common:'r-common',uncommon:'r-uncommon',rare:'r-rare',mythic:'r-mythic',special:'r-special',bonus:'r-special'};
+const CAT_ORDER=['Commander','Creatures','Planeswalkers','Instants','Sorceries','Artifacts','Enchantments','Lands','Other'];
+
+// ── Rate limiter ───────────────────────────────────────────────────
+const RATE_MS=220;
+let _lastFetch=0;
+async function sfFetch(url){
+  const w=Math.max(0,RATE_MS-(Date.now()-_lastFetch));
+  if(w>0)await sleep(w);
+  _lastFetch=Date.now();
+  return fetch(url);
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+// ── Helpers ────────────────────────────────────────────────────────
+function g(id){return document.getElementById(id)}
+function fu(v){return v!=null?'$'+Number(v).toFixed(2):'—'}
+function fa(v){return v!=null?'A$'+Number(v*AUD_R).toFixed(2):'—'}
+function fmtPrice(v){return curMode==='aud'?fa(v):fu(v)}
+function parsePrice(s){if(s==null||s==='')return null;const n=parseFloat(s);return isNaN(n)?null:n;}
+function setCell(uid,aid,v){
+  g(uid).textContent=fu(v);g(uid).className=v==null?'na':'';
+  g(aid).textContent=fa(v);g(aid).className=v==null?'na':'';
+}
+function getColorKey(mc,ty){
+  if(!mc&&ty&&ty.includes('Land'))return'L';if(!mc)return'C';
+  const f=['{W}','{U}','{B}','{R}','{G}'].filter(c=>mc.includes(c));
+  if(f.length>=2)return'M';
+  if(mc.includes('{W}'))return'W';if(mc.includes('{U}'))return'U';
+  if(mc.includes('{B}'))return'B';if(mc.includes('{R}'))return'R';
+  if(mc.includes('{G}'))return'G';return'C';
+}
+function getCategory(tl,isCmdr){
+  if(isCmdr)return'Commander';if(!tl)return'Other';
+  if(tl.includes('Creature'))return'Creatures';
+  if(tl.includes('Planeswalker'))return'Planeswalkers';
+  if(tl.includes('Instant'))return'Instants';
+  if(tl.includes('Sorcery'))return'Sorceries';
+  if(tl.includes('Artifact'))return'Artifacts';
+  if(tl.includes('Enchantment'))return'Enchantments';
+  if(tl.includes('Land'))return'Lands';
+  return'Other';
+}
+function renderMana(mc){
+  if(!mc)return'';
+  return(mc.match(/\{[^}]+\}/g)||[]).map(p=>{
+    const v=p.replace(/[{}]/g,''),c=PIPS[v];
+    const lbl=/^\d+$/.test(v)||'XCSP'.includes(v)?v:'';
+    return`<span class="pip" style="background:${c?c.bg:'#888'};color:${c?c.tc:'#fff'}">${lbl}</span>`;
+  }).join('');
+}
+
+// ── Buy link URL builder ───────────────────────────────────────────
+// MTGMate uses a simple search; strip special chars that cause issues
+function mtgmateUrl(name){
+  // Strip apostrophes and commas, encode spaces as +
+  const q=name.replace(/[',]/g,'').replace(/\s+/g,'+');
+  return'https://www.mtgmate.com.au/search?q='+q;
+}
+function tcgSinglesUrl(name){
+  return'https://tcgsingles.com.au/search?type=product&q='+encodeURIComponent(name);
+}
+
+// ── Scryfall fetch with fuzzy fallback ─────────────────────────────
+async function fetchCard(name){
+  if(cache[name]&&!cache[name]._failed&&!cache[name]._pending)return cache[name];
+  if(cache[name]&&cache[name]._pending)return cache[name];
+  cache[name]={_pending:true,_failed:false,img:null,type_line:'',oracle_text:'',mana_cost:'',color_identity:[],nm:null,foil:null,prints_uri:null,scryfall_uri:null,legalities:{},sets:null,banned:false};
+  try{
+    let r=await sfFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name));
+    if(!r.ok&&r.status===404)
+      r=await sfFetch('https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(name));
+    if(!r.ok){
+      if(r.status===429){cache[name]._pending=false;cache[name]._failed=true;return cache[name];}
+      throw new Error('HTTP '+r.status);
+    }
+    const d=await r.json();
+    if(d.object==='error')throw new Error(d.details||'not found');
+    const img=d.image_uris?.normal||(d.card_faces?.[0]?.image_uris?.normal)||null;
+    const banned=(d.legalities?.commander==='banned')||(d.legalities?.commander==='restricted');
+    Object.assign(cache[name],{
+      _pending:false,_failed:false,img,
+      type_line:d.type_line||'',oracle_text:d.oracle_text||'',mana_cost:d.mana_cost||'',
+      color_identity:d.color_identity||[],
+      nm:parsePrice(d.prices?.usd),foil:parsePrice(d.prices?.usd_foil),
+      prints_uri:d.prints_search_uri||null,scryfall_uri:d.scryfall_uri||null,
+      legalities:d.legalities||{},sets:null,banned
+    });
+  }catch(e){
+    Object.assign(cache[name],{_pending:false,_failed:true,oracle_text:'(not found — check card name)'});
+  }
+  return cache[name];
+}
+
+async function fetchSets(name){
+  const d=cache[name];
+  if(!d||d.sets!==null)return;
+  d.sets='loading';
+  if(!d.prints_uri){d.sets=[];return;}
+  try{
+    const r=await sfFetch(d.prints_uri);
+    if(!r.ok){d.sets=null;return;}
+    const j=await r.json();
+    if(j.object==='error'){d.sets=null;return;}
+    let results=(j.data||[]).map(c=>({code:(c.set||'').toUpperCase(),name:c.set_name||'',year:(c.released_at||'').slice(0,4),rarity:c.rarity||'common'}));
+    if(j.has_more&&j.next_page){
+      try{const r2=await sfFetch(j.next_page);if(r2.ok){const j2=await r2.json();results=results.concat((j2.data||[]).map(c=>({code:(c.set||'').toUpperCase(),name:c.set_name||'',year:(c.released_at||'').slice(0,4),rarity:c.rarity||'common'})));}}catch(_){}
+    }
+    d.sets=results;
+  }catch(e){d.sets=null;}
+}
+
+// ── Color identity pips ────────────────────────────────────────────
+// Scryfall returns color_identity already in WUBRG order
+const PIP_STYLE={
+  W:{bg:'#f4f0d8',tc:'#5a4e00',label:'W'},
+  U:{bg:'#1a5fa8',tc:'#fff',label:'U'},
+  B:{bg:'#1a0a28',tc:'#ddd',label:'B'},
+  R:{bg:'#cc2222',tc:'#fff',label:'R'},
+  G:{bg:'#0e5a20',tc:'#fff',label:'G'}
+};
+function renderColorPips(colors){
+  if(!colors||colors.length===0)return'';
+  return'<span class="color-pips">'+colors.map(c=>{
+    const s=PIP_STYLE[c];if(!s)return'';
+    return`<span class="cpip" style="background:${s.bg};color:${s.tc}">${s.label}</span>`;
+  }).join('')+'</span>';
+}
+// Returns {total, priced, unique, totalQty} for an array of card objects (may have dupes)
+function calcTotals(cards){
+  const countMap=new Map();
+  cards.forEach(c=>countMap.set(c.name,(countMap.get(c.name)||0)+1));
+  let total=0,priced=0,totalQty=0;
+  for(const[name,qty]of countMap){
+    const nm=cache[name]?.nm;
+    totalQty+=qty;
+    if(nm!=null){total+=nm*qty;priced++;}
+  }
+  return{total,priced,unique:countMap.size,totalQty};
+}
+
+function updateDeckSummary(){
+  const t=calcTotals(DECK);
+  const summary=g('deck-summary');
+  if(DECK.length===0){summary.style.display='none';return;}
+  summary.style.display='block';
+  const loading=DECK.some(c=>cache[c.name]?._pending);
+  if(t.priced===0&&loading){
+    g('ds-loading').style.display='';g('ds-total').style.display='none';
+    g('ds-ok').style.display='none';g('ds-note').style.display='none';
+    return;
+  }
+  g('ds-loading').style.display='none';
+  const priceStr=curMode==='aud'?fa(t.total):fu(t.total);
+  const priceMintStr=curMode==='aud'?fa(t.total*MINT_R):fu(t.total*MINT_R);
+  g('ds-total').style.display='';
+  g('ds-total').textContent=`NM ${priceStr}`;
+  if(t.priced===t.unique){
+    g('ds-ok').style.display='';g('ds-note').style.display='none';
+    g('ds-ok').textContent=`(all ${t.unique} unique cards priced)`;
+  }else{
+    const missing=t.unique-t.priced;
+    g('ds-ok').style.display='';g('ds-note').style.display='';
+    g('ds-ok').textContent=`(${t.priced}/${t.unique} cards priced`;
+    g('ds-note').textContent=`— ${missing} card${missing>1?'s':''} not found)`;
+  }
+}
+
+// ── Buy-whole-deck links ────────────────────────────────────────────
+function buildDeckList(){
+  // Collapse duplicates into qty map
+  const qty=new Map();
+  DECK.forEach(c=>qty.set(c.name,(qty.get(c.name)||0)+1));
+  return qty;
+}
+
+function updateBuyAllLinks(){
+  if(!DECK.length) return;
+  const qty=buildDeckList();
+
+  // TCGPlayer Mass Entry:
+  // URL: https://store.tcgplayer.com/massentry?c=QTY+Card+Name||QTY+Card+Name2...
+  // Spaces → +, cards separated by ||
+  const tcgParts=[...qty.entries()].map(([n,q])=>`${q}+${n.replace(/\s+/g,'+').replace(/'/g,'')}`);
+  const tcgUrl='https://store.tcgplayer.com/massentry?c='+tcgParts.join('||');
+  g('buyall-tcg').href=tcgUrl;
+
+  // MTGMate: search isn't bulk-cart, but their decklist import page accepts plain lists
+  // Best we can do is link to their search — no bulk cart URL format published
+  const mtgmateParts=[...qty.entries()].map(([n,q])=>`${q} ${n}`).join('\n');
+  // MTGMate doesn't have a bulk URL — open their site with the first card as a starting point
+  g('buyall-mtgmate').href='https://www.mtgmate.com.au/search?q='+encodeURIComponent([...qty.keys()][0]||'');
+  g('buyall-mtgmate').title='MTGMate has no bulk URL — opens a search. Use "Copy decklist" then paste into their search manually.';
+
+  // Card Kingdom — they have a similar mass entry page
+  const ckParts=[...qty.entries()].map(([n,q])=>`${q} ${n}`).join('\n');
+  const ckUrl='https://www.cardkingdom.com/builder?c='+encodeURIComponent(ckParts);
+  g('buyall-ck').href=ckUrl;
+}
+
+function copyDecklist(){
+  const qty=buildDeckList();
+  const text=[...qty.entries()].map(([n,q])=>`${q} ${n}`).join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=event.target;
+    const orig=btn.textContent;
+    btn.textContent='Copied!';
+    setTimeout(()=>btn.textContent=orig,1800);
+  }).catch(()=>{
+    // Fallback for browsers without clipboard API
+    prompt('Copy this decklist:',text);
+  });
+}
+async function showCard(name){
+  selName=name;
+  document.querySelectorAll('.row,.gcell').forEach(r=>r.classList.remove('sel'));
+  document.querySelectorAll('[data-n]').forEach(r=>{if(r.dataset.n===name)r.classList.add('sel');});
+  g('ph-msg').style.display='none';g('img-loading').style.display='flex';
+  g('card-img').style.display='none';g('img-fb').style.display='none';
+  g('img-wrap').style.background='#2a2a3a';g('banned-banner').style.display='none';
+  g('oracle-text').textContent='';
+  g('sets-list').innerHTML='<span class="sets-msg"><span class="spinner"></span> Loading printings…</span>';
+  g('sets-count').textContent='';
+  setCell('lp-u','lp-a',null);setCell('nm-u','nm-a',null);setCell('mt-u','mt-a',null);
+  resetBuyLinks();
+  const d=await fetchCard(name);
+  g('img-loading').style.display='none';
+  g('oracle-text').textContent=d.oracle_text||'';
+  if(d.banned)g('banned-banner').style.display='flex';
+  const nm=d.nm,lp=nm!=null?nm*LP_R:null,mt=nm!=null?nm*MINT_R:null;
+  setCell('lp-u','lp-a',lp);setCell('nm-u','nm-a',nm);setCell('mt-u','mt-a',mt);
+  document.querySelectorAll('[data-n]').forEach(r=>{if(r.dataset.n===name){const rp=r.querySelector('.rp');if(rp&&nm!=null)rp.textContent=fmtPrice(nm);}});
+  if(d.img){
+    const img=g('card-img');
+    img.onload=()=>{img.style.display='block';g('img-fb').style.display='none';};
+    img.onerror=()=>showFallback(name,d);
+    img.src=d.img;
+  }else showFallback(name,d);
+  updateBuyLinks(name,d.scryfall_uri);
+  await fetchSets(name);
+  renderSets(name);
+}
+
+function showFallback(name,d){
+  const ck=getColorKey(d.mana_cost,d.type_line);
+  g('img-wrap').style.background=COLOR_BG[ck]||'#2a2a3a';
+  g('fb-mana').innerHTML=renderMana(d.mana_cost);
+  g('fb-name').textContent=name;g('fb-type').textContent=d.type_line||'';
+  g('img-fb').style.display='flex';g('card-img').style.display='none';
+}
+function renderSets(name){
+  if(selName!==name)return;
+  const d=cache[name];
+  if(!d||d.sets===null||d.sets==='loading'){
+    g('sets-list').innerHTML=d?.sets==='loading'
+      ?'<span class="sets-msg"><span class="spinner"></span> Loading…</span>'
+      :'<span class="sets-msg">Could not load — click card again to retry</span>';
+    g('sets-count').textContent='';return;
+  }
+  const sets=d.sets;
+  g('sets-count').textContent=sets.length?`${sets.length} printings`:'';
+  if(!sets.length){g('sets-list').innerHTML='<span class="sets-msg">No printings found</span>';return;}
+  g('sets-list').innerHTML=sets.map(s=>`
+    <div class="set-row">
+      <span class="set-code">${s.code}</span>
+      <span class="set-name">${s.name}</span>
+      <span class="set-year">${s.year}</span>
+      <span class="rarity-dot ${RARITY[s.rarity]||'r-common'}" title="${s.rarity}"></span>
+    </div>`).join('');
+}
+
+function resetBuyLinks(){
+  ['bl-mtgmate','bl-tcgsingles','bl-tcgplayer','bl-cardkingdom','bl-scryfall','bl-gatherer'].forEach(id=>{const el=g(id);if(el){el.href='#';el.style.opacity='0.5';}});
+}
+function updateBuyLinks(name,scryfallUri){
+  const enc=encodeURIComponent(name);
+  const links={
+    'bl-mtgmate':mtgmateUrl(name),
+    'bl-tcgsingles':tcgSinglesUrl(name),
+    'bl-tcgplayer':'https://www.tcgplayer.com/search/magic/product?q='+enc+'&view=grid',
+    'bl-cardkingdom':'https://www.cardkingdom.com/catalog/search?search=header&filter[name]='+enc,
+    'bl-scryfall':scryfallUri||('https://scryfall.com/search?q=%21%22'+enc+'%22'),
+    'bl-gatherer':'https://gatherer.wizards.com/Pages/Search/Default.aspx?name=+['+enc+']'
+  };
+  for(const[id,url]of Object.entries(links)){const el=g(id);if(el){el.href=url;el.style.opacity='1';}}
+}
+
+// ── Controls ───────────────────────────────────────────────────────
+function setCur(m,el){
+  curMode=m;document.querySelectorAll('.cb').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  const u=m!=='aud',a=m!=='usd';
+  ['th-u','lp-u','nm-u','mt-u'].forEach(id=>g(id).style.display=u?'':'none');
+  ['th-a','lp-a','nm-a','mt-a'].forEach(id=>g(id).style.display=a?'':'none');
+  render(); // re-render so section prices update to new currency
+  updateDeckSummary();
+}
+function setF(f,el){filt=f;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));el.classList.add('on');render();}
+function setQ(v){sq=v.toLowerCase();render();}
+
+// ── View toggle ────────────────────────────────────────────────────
+function setView(mode,el){
+  viewMode=mode;
+  document.querySelectorAll('.vt').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  render();
+}
+
+// ── Shared: group cards by category ───────────────────────────────
+function groupDeck(){
+  const groups={};CAT_ORDER.forEach(c=>groups[c]=[]);
+  DECK.forEach(card=>{
+    const d=cache[card.name];
+    const cat=getCategory(d?.type_line||'',card.isCommander);
+    (groups[cat]=groups[cat]||[]).push(card);
+  });
+  return groups;
+}
+function filterCards(cards){
+  return cards.filter(c=>{
+    const d=cache[c.name];
+    const mf=filt==='all'||(filt==='banned'&&d?.banned)||(c.tags&&c.tags.includes(filt));
+    return mf&&(!sq||c.name.toLowerCase().includes(sq));
+  });
+}
+
+// ── Render dispatcher ──────────────────────────────────────────────
+function render(){ viewMode==='grid'?renderGrid():renderList(); }
+
+// ── List view ──────────────────────────────────────────────────────
+function renderList(){
+  const list=g('list');list.innerHTML='';
+  const groups=groupDeck();
+  let shown=false;
+  CAT_ORDER.forEach(cat=>{
+    const cards=filterCards(groups[cat]||[]);
+    if(!cards.length)return;
+    shown=true;
+    const grouped=new Map();
+    cards.forEach(c=>{if(!grouped.has(c.name))grouped.set(c.name,{card:c,count:0});grouped.get(c.name).count++;});
+    const{total,priced,unique}=calcTotals(cards);
+    const unpriced=unique-priced;
+    const secPriceStr=priced>0?fmtPrice(total):'';
+    const secMissingStr=unpriced>0?`${unpriced} unpriced`:'';
+    const wrap=document.createElement('div');wrap.className='section-block';
+    const hdr=document.createElement('div');hdr.className='shdr';
+    hdr.innerHTML=
+      `${cat}<span class="scnt">${unique}</span>`+
+      `<span class="shdr-spacer"></span>`+
+      (secPriceStr?`<span class="shdr-price">${secPriceStr}</span>`:'')+
+      (secMissingStr?`<span class="shdr-missing">${secMissingStr}</span>`:'');
+    wrap.appendChild(hdr);
+    for(const{card,count}of grouped.values()){
+      const d=cache[card.name];const isBanned=d?.banned===true;const nm=d?.nm;
+      const priceStr=nm!=null?fmtPrice(nm):'';
+      const pips=renderColorPips(d?.color_identity||[]);
+      const tags=[];
+      if(card.isCommander)tags.push('<span class="rtag tk">cmdr</span>');
+      if(isBanned)tags.push('<span class="banned-tag">BANNED</span>');
+      if(count>1)tags.push(`<span class="qty-badge">×${count}</span>`);
+      const row=document.createElement('div');
+      row.className='row'+(selName===card.name?' sel':'')+(isBanned?' banned-row':'');
+      row.dataset.n=card.name;
+      row.setAttribute('onclick',`showCard(${JSON.stringify(card.name)})`);
+      row.innerHTML=`<span class="rname">${card.name}</span>${pips}${tags.join('')}<span class="rp">${priceStr}</span>`;
+      wrap.appendChild(row);
+    }
+    list.appendChild(wrap);
+  });
+  if(!shown){const el=document.createElement('div');el.style.cssText='font-size:12px;color:#bbb;padding:8px 10px;font-style:italic';el.textContent='No cards match.';list.appendChild(el);}
+}
+
+// ── Grid view ──────────────────────────────────────────────────────
+function renderGrid(){
+  const list=g('list');list.innerHTML='';
+  const groups=groupDeck();
+  let shown=false;
+  CAT_ORDER.forEach(cat=>{
+    const cards=filterCards(groups[cat]||[]);
+    if(!cards.length)return;
+    shown=true;
+    const grouped=new Map();
+    cards.forEach(c=>{if(!grouped.has(c.name))grouped.set(c.name,{card:c,count:0});grouped.get(c.name).count++;});
+    const{total,priced,unique}=calcTotals(cards);
+    const unpriced=unique-priced;
+    const wrap=document.createElement('div');wrap.className='card-grid-section';
+    const hdr=document.createElement('div');hdr.className='shdr';
+    hdr.innerHTML=
+      `${cat}<span class="scnt">${unique}</span>`+
+      `<span class="shdr-spacer"></span>`+
+      (priced>0?`<span class="shdr-price">${fmtPrice(total)}</span>`:'')+
+      (unpriced>0?`<span class="shdr-missing">${unpriced} unpriced</span>`:'');
+    wrap.appendChild(hdr);
+    const grid=document.createElement('div');grid.className='grid-cards';
+    for(const{card,count}of grouped.values()){
+      const d=cache[card.name];
+      const isBanned=d?.banned===true;
+      const ck=getColorKey(d?.mana_cost||'',d?.type_line||'');
+      const bg=COLOR_BG[ck]||'#2a2a3a';
+      const pips=renderColorPips(d?.color_identity||[]);
+      const cell=document.createElement('div');
+      cell.className='gcell'+(selName===card.name?' sel':'');
+      cell.dataset.n=card.name;
+      cell.setAttribute('onclick',`showCard(${JSON.stringify(card.name)})`);
+      // Placeholder always present; image layered on top when it loads
+      cell.innerHTML=
+        `<div class="gcell-ph" style="background:${bg}">`+
+          (pips?`<div class="gcell-pips">${pips}</div>`:'')+
+          `<div class="gcell-ph-name">${card.name}</div>`+
+        `</div>`+
+        (count>1?`<span class="gcell-qty">×${count}</span>`:'')+
+        (isBanned?`<span class="gcell-banned">BANNED</span>`:'');
+      // Lazy-load the image if URL is known
+      if(d?.img){
+        const img=document.createElement('img');
+        img.alt=card.name;
+        img.loading='lazy';
+        img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:6px';
+        img.src=d.img;
+        // If image fails to load just keep the placeholder
+        img.onerror=()=>img.remove();
+        cell.appendChild(img);
+      }
+      grid.appendChild(cell);
+    }
+    wrap.appendChild(grid);
+    list.appendChild(wrap);
+  });
+  if(!shown){const el=document.createElement('div');el.style.cssText='font-size:12px;color:#bbb;padding:8px 10px;font-style:italic';el.textContent='No cards match.';list.appendChild(el);}
+}
+
+function updateStats(){
+  const creatures=DECK.filter(c=>cache[c.name]?.type_line?.includes('Creature')).length;
+  const lands=DECK.filter(c=>cache[c.name]?.type_line?.includes('Land')).length;
+  const banned=[...new Set(DECK.filter(c=>cache[c.name]?.banned===true).map(c=>c.name))];
+  g('st-creatures').textContent=creatures||'—';g('st-lands').textContent=lands||'—';
+  const bs=g('st-banned'),pb=g('pill-banned');
+  if(banned.length){bs.style.display='';bs.className='stat stat-warn';g('st-banned-n').textContent=banned.length;if(pb)pb.style.display='';}
+  else{bs.style.display='none';if(pb)pb.style.display='none';}
+  updateDeckSummary();
+  updateBuyAllLinks();
+}
+
+function buildPills(){
+  const tags=new Set();DECK.forEach(c=>c.tags&&c.tags.forEach(t=>tags.add(t)));
+  const p=g('pills');p.innerHTML='';
+  const all=document.createElement('button');all.className='pill on';all.textContent='All';
+  all.setAttribute('onclick',"setF('all',this)");p.appendChild(all);
+  [...tags].sort().forEach(t=>{
+    const b=document.createElement('button');b.className='pill';
+    b.textContent=t.charAt(0).toUpperCase()+t.slice(1);
+    b.setAttribute('onclick',`setF(${JSON.stringify(t)},this)`);p.appendChild(b);
+  });
+  const bb=document.createElement('button');bb.className='pill';bb.id='pill-banned';
+  bb.textContent='Banned';bb.style.display='none';
+  bb.setAttribute('onclick',"setF('banned',this)");p.appendChild(bb);
+}
+
+// ── Decklist parser ────────────────────────────────────────────────
+function parseDecklist(text){
+  const lines=text.split('\n');const cards=[];let inCmdr=false,cmdrSet=false;
+  for(const raw of lines){
+    const line=raw.trim();if(!line)continue;
+    if(line.startsWith('//')||line.startsWith('#')){inCmdr=/commander/i.test(line);continue;}
+    const noSb=line.replace(/^SB:\s*/i,'');
+    const m=noSb.match(/^(\d+)x?\s+(.+)$/);
+    const rawName=m?m[2]:noSb;const qty=m?parseInt(m[1]):1;
+    const isCmdrMark=/\*CMDR\*/i.test(rawName);
+    const name=rawName.replace(/\s*\([A-Za-z0-9_]+\)\s*\d*/g,'').replace(/\s*\*CMDR\*/gi,'').trim();
+    if(!name)continue;
+    const isCommander=(inCmdr&&!cmdrSet)||isCmdrMark;
+    for(let i=0;i<qty;i++)cards.push({name,isCommander:isCommander&&i===0,tags:[]});
+    if(isCommander)cmdrSet=true;
+  }
+  if(cards.length&&!cards.some(c=>c.isCommander))cards[0].isCommander=true;
+  return cards;
+}
+
+// ── Batch card loader (Scryfall /cards/collection, up to 75 per request) ──
+function emptyCard(){ return {_pending:false,_failed:false,img:null,type_line:'',oracle_text:'',mana_cost:'',color_identity:[],nm:null,foil:null,prints_uri:null,scryfall_uri:null,legalities:{},sets:null,banned:false}; }
+
+function processCardData(d, nameMap, batch){
+  // Map Scryfall result back to the searched name
+  const searched=nameMap.get(d.name.toLowerCase())
+    ||nameMap.get((d.name.split(' // ')[0]).toLowerCase())
+    ||batch.find(n=>d.name.toLowerCase().startsWith(n.toLowerCase()));
+  if(!searched) return;
+  const img=d.image_uris?.normal||(d.card_faces?.[0]?.image_uris?.normal)||null;
+  const banned=(d.legalities?.commander==='banned')||(d.legalities?.commander==='restricted');
+  cache[searched]=Object.assign(emptyCard(),{
+    img, type_line:d.type_line||'', oracle_text:d.oracle_text||'',
+    mana_cost:d.mana_cost||'', color_identity:d.color_identity||[],
+    nm:parsePrice(d.prices?.usd), foil:parsePrice(d.prices?.usd_foil),
+    prints_uri:d.prints_search_uri||null, scryfall_uri:d.scryfall_uri||null,
+    legalities:d.legalities||{}, sets:null, banned
+  });
+}
+
+async function batchFetch(names){
+  const notFound=[];
+  const batches=[];
+  for(let i=0;i<names.length;i+=75) batches.push(names.slice(i,i+75));
+
+  // Fire all batches in parallel — Scryfall allows this for the collection endpoint
+  g('load-label').textContent=`Fetching ${names.length} cards…`;
+  const batchPromises=batches.map(async (batch)=>{
+    const nameMap=new Map();
+    batch.forEach(n=>nameMap.set(n.toLowerCase(),n));
+    try{
+      // Use plain fetch (no rate limiter needed for batch endpoint)
+      const r=await fetch('https://api.scryfall.com/cards/collection',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({identifiers:batch.map(n=>({name:n}))})
+      });
+      if(!r.ok) return batch; // return whole batch as not-found on error
+      const j=await r.json();
+      for(const d of (j.data||[])) processCardData(d, nameMap, batch);
+      return (j.not_found||[]).map(nf=>nf.name).filter(Boolean);
+    }catch(e){ return batch; }
+  });
+
+  const results=await Promise.all(batchPromises);
+  results.forEach(nf=>notFound.push(...nf));
+  return notFound;
+}
+
+// ── Load deck ──────────────────────────────────────────────────────
+async function setDeck(cards,title,sub){
+  _loadAbort=true;
+  // Cancel any in-progress load, then immediately start the new one
+  await sleep(50);
+  _loadAbort=false;
+  DECK=cards;selName=null;filt='all';sq='';
+  g('deck-title').textContent=title||'Commander Deck';
+  g('deck-sub').textContent=sub||cards.length+' cards';
+  g('st-cards').textContent=cards.length;
+  g('st-creatures').textContent='—';g('st-lands').textContent='—';
+  g('st-banned').style.display='none';
+  g('ph-msg').style.display='flex';g('card-img').style.display='none';
+  g('img-fb').style.display='none';g('banned-banner').style.display='none';
+  g('img-wrap').style.background='#2a2a3a';g('oracle-text').textContent='';
+  g('sets-list').innerHTML='<span class="sets-msg">Click a card to see printings</span>';
+  g('sets-count').textContent='';
+  setCell('lp-u','lp-a',null);setCell('nm-u','nm-a',null);setCell('mt-u','mt-a',null);
+  resetBuyLinks();buildPills();render();
+  g('deck-summary').style.display='block';
+  g('ds-loading').style.display='';g('ds-total').style.display='none';
+  g('ds-ok').style.display='none';g('ds-note').style.display='none';
+  // Build buy links immediately — they only need the deck list, not card data
+  updateBuyAllLinks();
+  g('load-bar').style.display='flex';g('progress-fill').style.width='0%';
+
+  const unique=[...new Set(cards.map(c=>c.name))];
+  const toFetch=unique.filter(n=>!cache[n]||cache[n]._failed);
+
+  if(toFetch.length){
+    // Phase 1: parallel batch fetch — whole deck in 1-2 requests fired simultaneously
+    g('load-label').textContent='Loading cards…';
+    g('progress-fill').style.width='20%';
+    const notFound=await batchFetch(toFetch);
+    g('progress-fill').style.width='80%';
+    render(); updateStats();
+
+    // Phase 2: individually retry not-found names with fuzzy matching
+    // Run up to 4 in parallel to keep it fast without hammering Scryfall
+    if(!_loadAbort&&notFound.length){
+      g('load-label').textContent=`Resolving ${notFound.length} unmatched…`;
+      const CONCURRENCY=4;
+      for(let i=0;i<notFound.length;i+=CONCURRENCY){
+        if(_loadAbort) break;
+        const chunk=notFound.slice(i,i+CONCURRENCY);
+        await Promise.all(chunk.map(n=>{ delete cache[n]; return fetchCard(n); }));
+        g('progress-fill').style.width=(80+Math.round(((i+CONCURRENCY)/notFound.length)*18))+'%';
+      }
+      render(); updateStats();
+    }
+  }
+
+  g('progress-fill').style.width='100%';
+  await sleep(120);
+  g('load-bar').style.display='none';
+  render(); updateStats();
+}
+
+function loadDeckFromInput(){
+  const text=g('dl-input').value.trim();
+  if(!text){alert('Please paste a decklist first.');return;}
+  const cards=parseDecklist(text);
+  if(!cards.length){alert('Could not parse any cards.');return;}
+  hideModal();
+  const cmdr=cards.find(c=>c.isCommander);
+  setDeck(cards,cmdr?cmdr.name+' Commander Deck':'Commander Deck',cards.length+' cards');
+}
+function showModal(){g('modal').style.display='flex';}
+function hideModal(){g('modal').style.display='none';}
+
+// ── Default deck ───────────────────────────────────────────────────
+const DEFAULT=`// Commander
+1 Atraxa, Praetors' Voice
+// Infect & Toxic
+1 Blighted Agent
+1 Glistener Elf
+1 Phyrexian Crusader
+1 Ichor Rats
+1 Plague Myr
+1 Hand of the Praetors
+1 Skithiryx, the Blight Dragon
+1 Blightbelly Rat
+1 Venerated Rotpriest
+1 Necrogen Rotpriest
+1 Bloated Contaminator
+1 Contaminant Grafter
+1 Ixhel, Scion of Atraxa
+1 Vishgraz, the Doomhive
+1 Phyrexian Swarmlord
+// Proliferate Engine
+1 Tekuthal, Inquiry Dominus
+1 Vorinclex, Monstrous Raider
+1 Thrummingbird
+1 Grateful Apparition
+1 Evolution Sage
+1 Flux Channeler
+1 Norn's Choirmaster
+1 Ezuri, Stalker of Spheres
+1 Fathom Mage
+1 Contagion Clasp
+1 Contagion Engine
+1 Inexorable Tide
+1 Tezzeret's Gambit
+// Pump & Finishers
+1 Triumph of the Hordes
+1 Tainted Strike
+1 Scale Up
+1 Become Immense
+1 Mutagenic Growth
+1 Giant Growth
+// Tutors
+1 Demonic Tutor
+1 Vampiric Tutor
+1 Imperial Seal
+1 Worldly Tutor
+// Card Draw
+1 Rhystic Study
+1 Phyrexian Arena
+1 Skullclamp
+1 Infectious Inquiry
+1 Phyresis Outbreak
+// Ramp
+1 Sol Ring
+1 Arcane Signet
+1 Birds of Paradise
+1 Bloom Tender
+1 Faeburrow Elder
+1 Cultivate
+1 Kodama's Reach
+1 Nature's Lore
+1 Astral Cornucopia
+1 Commander's Sphere
+// Interaction
+1 Swords to Plowshares
+1 Path to Exile
+1 Counterspell
+1 Fierce Guardianship
+1 Force of Will
+1 Swan Song
+1 Cyclonic Rift
+1 Toxic Deluge
+1 Infectious Bite
+1 Lightning Greaves
+1 Swiftfoot Boots
+1 Skrelv's Hive
+1 Norn's Decree
+// Lands
+1 Command Tower
+1 Inkmoth Nexus
+1 Blinkmoth Nexus
+1 Urborg, Tomb of Yawgmoth
+1 Cabal Coffers
+1 Yavimaya, Cradle of Growth
+1 Breeding Pool
+1 Watery Grave
+1 Godless Shrine
+1 Temple Garden
+1 Overgrown Tomb
+1 Hallowed Fountain
+1 Verdant Catacombs
+1 Polluted Delta
+1 Misty Rainforest
+1 Marsh Flats
+1 Windswept Heath
+1 Underground Sea
+1 Bayou
+1 Savannah
+1 Scrubland
+1 Tropical Island
+1 Tundra
+1 Mana Confluence
+1 City of Brass
+1 Reflecting Pool
+3 Forest
+2 Island
+2 Swamp
+2 Plains`;
+
+(function init(){
+  const cards=parseDecklist(DEFAULT);
+  setDeck(cards,"Atraxa, Praetors' Voice — Infect/Poison","Commander · GWUB · 100 cards");
+  setCur('usd',document.querySelector('.cb.on'));
+})();
+</script>
+</body>
+</html>
