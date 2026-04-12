@@ -1,26 +1,53 @@
 # Manifest
 
-A lightweight, single-file Magic: The Gathering Commander deck viewer and price tracker.
+**Your Commander deck, manifested.** Paste a decklist, see every card, check every price, buy what you need. One HTML file. No installs. No accounts. No nonsense.
 
-## Features
+![Deck view with card preview and prices](docs/screenshots/deck-view.png)
 
-- **Multi-format import** — paste decklists from Moxfield, Archidekt, MTGO, or Arena
-- **Card previews** — art, oracle text, mana costs, type info
-- **Price tracking** — compare prices across TCGPlayer, Card Kingdom, MTGMate, Scryfall, and Gatherer
-- **Bulk purchasing** — mass entry links to multiple retailers
-- **Browse printings** — see all printings of a card across sets with rarity and release year
-- **Commander legality** — highlights banned cards
-- **List & grid views** — toggle between compact list and visual grid
-- **Zero dependencies** — single HTML file, no build step, no backend
+## What it does
+
+Manifest turns a raw decklist into an interactive, visual deck viewer with live pricing from Scryfall. Paste your list from Moxfield, Archidekt, MTGO, or Arena and you're rolling.
+
+- **Card preview** with art, oracle text, mana cost, and every printing across Magic's history
+- **Live prices** in USD and AUD across LP, NM, and Mint conditions
+- **Mark cards as owned** so you only buy what you're missing
+- **One-click bulk buy** links to TCGPlayer and Card Kingdom (owned cards excluded automatically)
+- **Saved decks** persist between sessions so you can switch between brews instantly
+- **Banned card detection** for Commander format
+- **List and grid views** because sometimes you want to see the art
+
+## Screenshots
+
+### Grid view
+Browse your deck visually with full card art, owned indicators, and category breakdowns.
+
+![Grid view with card images](docs/screenshots/grid-view.png)
+
+### Load & save decks
+Your decks are saved locally with commander name and color identity. Come back anytime.
+
+| First visit | Returning |
+|:-:|:-:|
+| ![Load modal](docs/screenshots/load-modal.png) | ![Saved decks](docs/screenshots/saved-decks.png) |
 
 ## Usage
 
-Open `index.html` in a browser. That's it.
+```
+open index.html
+```
 
-To load a deck, click "Load new deck" and paste your decklist in any supported format.
+That's it. One file, zero dependencies, runs entirely in your browser.
+
+Paste a decklist in any of these formats:
+- **Moxfield** / **Archidekt** exports
+- **MTGO** format (`1 Card Name`)
+- **Arena** format (`1 Card Name (SET) 123`)
+
+The first card is treated as Commander unless you label a section `// Commander` or mark a card with `*CMDR*`.
 
 ## Tech
 
-- Vanilla HTML, CSS, JavaScript
+- Vanilla HTML + CSS + JS in a single file
 - [Scryfall API](https://scryfall.com/docs/api) for card data, images, and pricing
-- Built-in rate limiting to respect API limits
+- localStorage for persisting decks and owned cards
+- No build step, no framework, no backend, no API keys
