@@ -480,6 +480,10 @@ function updateSavedDeckColors(){
   }
 }
 
+// ── Basic lands ────────────────────────────────────────────────────
+const BASIC_LANDS=new Set(['Plains','Island','Swamp','Mountain','Forest','Wastes']);
+function isBasicLand(name){return BASIC_LANDS.has(name);}
+
 // ── Buy link URL builder ───────────────────────────────────────────
 // MTGMate uses a simple search; strip special chars that cause issues
 function mtgmateUrl(name){
@@ -593,8 +597,8 @@ function updateDeckSummary(){
   }else{
     const missing=t.unique-t.priced;
     g('ds-ok').style.display='';g('ds-note').style.display='';
-    g('ds-ok').textContent=`(${t.priced}/${t.unique} cards priced`;
-    g('ds-note').textContent=`— ${missing} card${missing>1?'s':''} not found)`;
+    g('ds-ok').textContent=`(${t.priced}/${t.unique} unique cards priced`;
+    g('ds-note').textContent=`— ${missing} not found)`;
   }
 }
 
@@ -610,13 +614,14 @@ function updateBuyAllLinks(){
   if(!DECK.length) return;
   const qty=buildDeckList();
 
-  // TCGPlayer Mass Entry — exclude owned cards
-  const tcgParts=[...qty.entries()].filter(([n])=>!ownedSet.has(n)).map(([n,q])=>`${q}+${n.replace(/\s+/g,'+').replace(/'/g,'')}`);
+  // TCGPlayer Mass Entry — exclude owned cards and basic lands
+  const buyable=[...qty.entries()].filter(([n])=>!ownedSet.has(n)&&!isBasicLand(n));
+  const tcgParts=buyable.map(([n,q])=>`${q}+${n.replace(/\s+/g,'+').replace(/'/g,'')}`);
   const tcgUrl='https://store.tcgplayer.com/massentry?c='+tcgParts.join('||');
   g('buyall-tcg').href=tcgUrl;
 
-  // Card Kingdom — they have a similar mass entry page
-  const ckParts=[...qty.entries()].map(([n,q])=>`${q} ${n}`).join('\n');
+  // Card Kingdom — exclude owned and basic lands too
+  const ckParts=buyable.map(([n,q])=>`${q} ${n}`).join('\n');
   const ckUrl='https://www.cardkingdom.com/builder?c='+encodeURIComponent(ckParts);
   g('buyall-ck').href=ckUrl;
 }
@@ -760,14 +765,14 @@ function renderList(){
     shown=true;
     const grouped=new Map();
     cards.forEach(c=>{if(!grouped.has(c.name))grouped.set(c.name,{card:c,count:0});grouped.get(c.name).count++;});
-    const{total,priced,unique}=calcTotals(cards,true);
+    const{total,priced,unique,totalQty}=calcTotals(cards,true);
     const unpriced=unique-priced;
     const secPriceStr=priced>0?fmtPrice(total):'';
     const secMissingStr=unpriced>0?`${unpriced} unpriced`:'';
     const wrap=document.createElement('div');wrap.className='section-block';
     const hdr=document.createElement('div');hdr.className='shdr';
     hdr.innerHTML=
-      `${cat}<span class="scnt">${unique}</span>`+
+      `${cat}<span class="scnt">${totalQty}</span>`+
       `<span class="shdr-spacer"></span>`+
       (secPriceStr?`<span class="shdr-price">${secPriceStr}</span>`:'')+
       (secMissingStr?`<span class="shdr-missing">${secMissingStr}</span>`:'');
@@ -809,12 +814,12 @@ function renderGrid(){
     shown=true;
     const grouped=new Map();
     cards.forEach(c=>{if(!grouped.has(c.name))grouped.set(c.name,{card:c,count:0});grouped.get(c.name).count++;});
-    const{total,priced,unique}=calcTotals(cards,true);
+    const{total,priced,unique,totalQty}=calcTotals(cards,true);
     const unpriced=unique-priced;
     const wrap=document.createElement('div');wrap.className='card-grid-section';
     const hdr=document.createElement('div');hdr.className='shdr';
     hdr.innerHTML=
-      `${cat}<span class="scnt">${unique}</span>`+
+      `${cat}<span class="scnt">${totalQty}</span>`+
       `<span class="shdr-spacer"></span>`+
       (priced>0?`<span class="shdr-price">${fmtPrice(total)}</span>`:'')+
       (unpriced>0?`<span class="shdr-missing">${unpriced} unpriced</span>`:'');
@@ -898,12 +903,14 @@ function buildPills(){
 }
 
 // ── Decklist parser ────────────────────────────────────────────────
+const SECTION_HEADERS=/^(deck|sideboard|companion|commander|maybeboard|mainboard|creatures?|planeswalkers?|instants?|sorcery|sorceries|artifacts?|enchantments?|lands?|other|ramp|interaction|card draw|tutors|removal|counterspells|protection|about)$/i;
 function parseDecklist(text){
   const lines=text.split('\n');const cards=[];let inCmdr=false,cmdrSet=false;
   for(const raw of lines){
     const line=raw.trim();if(!line)continue;
     if(line.startsWith('//')||line.startsWith('#')){inCmdr=/commander/i.test(line);continue;}
-    const noSb=line.replace(/^SB:\s*/i,'');
+    if(SECTION_HEADERS.test(line)){inCmdr=/commander/i.test(line);continue;}
+    const noSb=line.replace(/^SB:\s*/i,'').replace(/\t/g,' ');
     const m=noSb.match(/^(\d+)x?\s+(.+)$/);
     const rawName=m?m[2]:noSb;const qty=m?parseInt(m[1]):1;
     const isCmdrMark=/\*CMDR\*/i.test(rawName);
