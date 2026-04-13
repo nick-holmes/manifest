@@ -487,9 +487,7 @@ function isBasicLand(name){return BASIC_LANDS.has(name);}
 // ── Buy link URL builder ───────────────────────────────────────────
 // MTGMate uses a simple search; strip special chars that cause issues
 function mtgmateUrl(name){
-  // Strip apostrophes and commas, encode spaces as +
-  const q=name.replace(/[',]/g,'').replace(/\s+/g,'+');
-  return'https://www.mtgmate.com.au/search?q='+q;
+  return'https://www.mtgmate.com.au/cards/search?q='+encodeURIComponent(name);
 }
 function tcgSinglesUrl(name){
   return'https://tcgsingles.com.au/search?type=product&q='+encodeURIComponent(name);
